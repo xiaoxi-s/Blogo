@@ -30,6 +30,7 @@ import (
 )
 
 var postsHandlers *handlers.PostsHandler
+var commentsHandlers *handlers.CommentsHandler
 
 func init() {
 	ctx := context.Background()
@@ -45,10 +46,9 @@ func init() {
 	log.Println("Connected to MongoDB")
 
 	collectionPosts := client.Database(os.Getenv("MONGO_DATABASE")).Collection("posts")
-	log.Println(os.Getenv("MONGO_DATABASE"))
-	// collectionPosts := client.Database("blogo").Collection("posts")
+	collectionComments := client.Database(os.Getenv("MONGO_DATABASE")).Collection("comments")
+
 	// Connect to redis
-	log.Println(collectionPosts)
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "",
@@ -56,13 +56,14 @@ func init() {
 	})
 	status := redisClient.Ping()
 	log.Println(status)
-
+	//create handlers
 	postsHandlers = handlers.NewPostsHandlers(ctx, collectionPosts, redisClient)
+	commentsHandlers = handlers.NewCommentsHandlers(ctx, collectionComments, redisClient)
 }
 
 func main() {
 	router := gin.Default()
-
+	// posts handler
 	// no auth
 	router.GET("/posts", postsHandlers.ListPostsHandler)
 	router.GET("/posts/:id", postsHandlers.ViewPostHandler)
@@ -72,5 +73,10 @@ func main() {
 	router.DELETE("/posts/:id", postsHandlers.DeletePostHandler)
 	router.POST("/posts", postsHandlers.NewPostHandler)
 	router.POST("/posts/thumbup/:id", postsHandlers.ThumbupPostHandler)
+
+	// comments handler
+	router.GET("/comments/:postid", commentsHandlers.ListCommentsToPostHandler)
+	router.POST("/comments/:postid", commentsHandlers.CreateCommentToPostHandler)
+	router.POST("/comments/thumbup/:commentid", commentsHandlers.CommentThumbupHandler)
 	router.Run()
 }
