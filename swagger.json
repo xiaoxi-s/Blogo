@@ -1,0 +1,136 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "This is the API implementation for Blogo",
+    "title": "Blogo API",
+    "contact": {
+      "name": "Xiaoxi Sun",
+      "email": "xiaoxisun2000@gmail.com"
+    },
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "paths": {
+    "/post/search/{title}": {
+      "get": {
+        "description": "Search a post given its title",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "post"
+        ],
+        "operationId": "searchPost",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "post title",
+            "name": "title",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "404": {
+            "description": "Invalid post title"
+          }
+        }
+      }
+    },
+    "/posts": {
+      "get": {
+        "description": "Return lists of posts",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "post"
+        ],
+        "operationId": "listPosts",
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          }
+        }
+      },
+      "post": {
+        "description": "Create a new post",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "post"
+        ],
+        "operationId": "newPost",
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "500": {
+            "description": "Decode input post error or insertion error"
+          }
+        }
+      }
+    },
+    "/posts/{id}": {
+      "get": {
+        "description": "View a post given its id",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "post"
+        ],
+        "operationId": "viewPost",
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "404": {
+            "description": "Invalid post ID"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete a post given its ID",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "post"
+        ],
+        "operationId": "deletePost",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of the post",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "404": {
+            "description": "Invalid post ID"
+          }
+        }
+      }
+    }
+  }
+}
