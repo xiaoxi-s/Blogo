@@ -91,7 +91,6 @@ func (handler *PostsHandler) NewPostHandler(c *gin.Context) {
 	post.CreatedTime = time.Now()
 	post.LastUpdatedTime = post.CreatedTime
 
-	log.Println(post)
 	_, err := handler.collection.InsertOne(handler.ctx, post)
 
 	if err != nil {
