@@ -7,7 +7,8 @@ import (
 )
 
 type Post struct {
-	PostID          primitive.ObjectID `json:"postID" bson:"_id"`
+	PostID          primitive.ObjectID `json:"postID" bson:"postID"`
+	Username        string             `json:"username" bson:"username"`
 	Title           string             `json:"postTitle" bson:"postTitle"`
 	Tags            []string           `json:"postTags" bson:"postTags"`
 	CreatedTime     time.Time          `json:"postCreatedTime" bson:"postCreatedTime"`
