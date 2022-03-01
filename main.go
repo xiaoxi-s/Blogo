@@ -22,6 +22,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/gin-contrib/sessions"
+	sessionRedisStore "github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -31,6 +33,7 @@ import (
 
 var postsHandlers *handlers.PostsHandler
 var commentsHandlers *handlers.CommentsHandler
+var authhandler *handlers.AuthHandler
 
 func init() {
 	ctx := context.Background()
@@ -47,6 +50,7 @@ func init() {
 
 	collectionPosts := client.Database(os.Getenv("MONGO_DATABASE")).Collection("posts")
 	collectionComments := client.Database(os.Getenv("MONGO_DATABASE")).Collection("comments")
+	collectionUsers := client.Database(os.Getenv("MONGO_DATABASE")).Collection("users")
 
 	// Connect to redis
 	redisClient := redis.NewClient(&redis.Options{
@@ -59,24 +63,36 @@ func init() {
 	//create handlers
 	postsHandlers = handlers.NewPostsHandlers(ctx, collectionPosts, redisClient)
 	commentsHandlers = handlers.NewCommentsHandlers(ctx, collectionComments, redisClient)
+	authhandler = handlers.NewAuthHandler(ctx, collectionUsers)
 }
 
 func main() {
 	router := gin.Default()
-	// posts handler
-	// no auth
+
+	store, _ := sessionRedisStore.NewStore(10, "tcp", os.Getenv("SESSION_REDIS_URI"), "", []byte("secret"))
+	router.Use(sessions.Sessions("post_api", store))
+
+	// sign in
+	router.POST("/signin", authhandler.SignInHandler)
+	router.POST("/singout", authhandler.SignOutHandler)
+	router.POST("/signup", authhandler.SignUpHandler)
+
+	// view posts
 	router.GET("/posts", postsHandlers.ListPostsHandler)
 	router.GET("/posts/:id", postsHandlers.ViewPostHandler)
 	router.GET("/posts/search/:title", postsHandlers.SearchPostHandler)
-
-	// need auth
-	router.DELETE("/posts/:id", postsHandlers.DeletePostHandler)
-	router.POST("/posts", postsHandlers.NewPostHandler)
-	router.POST("/posts/thumbup/:id", postsHandlers.ThumbupPostHandler)
-
-	// comments handler
+	// view comments
 	router.GET("/comments/:postid", commentsHandlers.ListCommentsToPostHandler)
-	router.POST("/comments/:postid", commentsHandlers.CreateCommentToPostHandler)
-	router.POST("/comments/thumbup/:commentid", commentsHandlers.CommentThumbupHandler)
+
+	authorized := router.Group("/")
+	authorized.Use(authhandler.AuthMiddileware())
+	{
+		authorized.DELETE("/posts/:id", postsHandlers.DeletePostHandler)
+		authorized.POST("/posts", postsHandlers.NewPostHandler)
+		authorized.POST("/posts/thumbup/:id", postsHandlers.ThumbupPostHandler)
+		authorized.POST("/comments/:postid", commentsHandlers.CreateCommentToPostHandler)
+		authorized.POST("/comments/thumbup/:commentid", commentsHandlers.CommentThumbupHandler)
+	}
+
 	router.Run()
 }
