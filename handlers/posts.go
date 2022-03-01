@@ -127,6 +127,10 @@ func (handler *PostsHandler) ViewPostHandler(c *gin.Context) {
 	cur := handler.collection.FindOne(handler.ctx, bson.M{
 		"_id": postID,
 	})
+	if cur.Err() != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": cur.Err().Error()})
+		return
+	}
 
 	// decode the post into go struct
 	var post models.Post
