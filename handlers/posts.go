@@ -200,6 +200,7 @@ func (handler *PostsHandler) SearchPostHandler(c *gin.Context) {
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 	posts := make([]models.Post, 0)
 	for cur.Next(handler.ctx) {
@@ -232,9 +233,16 @@ func (handler *PostsHandler) ThumbupPostHandler(c *gin.Context) {
 	id := c.Param("id")
 	objectid, _ := primitive.ObjectIDFromHex(id)
 
+	// find the comment
 	cur := handler.collection.FindOne(handler.ctx, bson.M{
 		"_id": objectid,
 	})
+	if cur.Err() != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": cur.Err().Error()})
+		return
+	}
+
+	// modify the post
 	var post models.Post
 	err := cur.Decode(&post)
 	if err != nil { // decode error
