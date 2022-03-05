@@ -8,7 +8,7 @@ import (
 
 type Comment struct {
 	CommentID   primitive.ObjectID `json:"commentID" bson:"commentID"`
-	UserID      primitive.ObjectID `json:"userID" bson:"userID"`
+	Username    string             `json:"username" bson:"username"`
 	CommentToID primitive.ObjectID `json:"commentToID" bson:"commentToID"`
 	CreatedTime time.Time          `json:"commentCreatedTime" bson:"commentCreatedTime"`
 	NumOfThumb  int64              `json:"numOfThumb" bson:"numOfThumb"`
