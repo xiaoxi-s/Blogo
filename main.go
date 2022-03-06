@@ -22,6 +22,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	sessionRedisStore "github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
@@ -71,6 +72,7 @@ func main() {
 
 	store, _ := sessionRedisStore.NewStore(10, "tcp", os.Getenv("SESSION_REDIS_URI"), "", []byte("secret"))
 	router.Use(sessions.Sessions("post_api", store))
+	router.Use(cors.Default())
 
 	// sign in
 	router.POST("/signin", authhandler.SignInHandler)
