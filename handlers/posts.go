@@ -111,14 +111,16 @@ func (handler *PostsHandler) NewPostHandler(c *gin.Context) {
 // responses:
 //  '200':
 //   description: Successful operation
-//  '404':
+//  '400':
 //   description: Invalid post ID
+//  '404':
+//   description: post with provided ID not found
 func (handler *PostsHandler) ViewPostHandler(c *gin.Context) {
 	// retrieve parameter id and search in database
 	postIDString := c.Param("id")
 	postID, err := primitive.ObjectIDFromHex(postIDString)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -128,7 +130,7 @@ func (handler *PostsHandler) ViewPostHandler(c *gin.Context) {
 		"postID": postID,
 	})
 	if cur.Err() != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": cur.Err().Error()})
+		c.JSON(http.StatusNotFound, gin.H{"error": cur.Err().Error()})
 		return
 	}
 
