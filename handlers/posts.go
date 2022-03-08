@@ -127,7 +127,7 @@ func (handler *PostsHandler) ViewPostHandler(c *gin.Context) {
 	// TODO: use redis!
 
 	cur := handler.collection.FindOne(handler.ctx, bson.M{
-		"postID": postID,
+		"_id": postID,
 	})
 	if cur.Err() != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": cur.Err().Error()})
@@ -165,7 +165,7 @@ func (handler *PostsHandler) DeletePostHandler(c *gin.Context) {
 	id := c.Param("id")
 	objectid, _ := primitive.ObjectIDFromHex(id)
 	_, err := handler.collection.DeleteOne(handler.ctx, bson.M{
-		"postID": objectid,
+		"_id": objectid,
 	})
 
 	if err != nil {
@@ -237,7 +237,7 @@ func (handler *PostsHandler) ThumbupPostHandler(c *gin.Context) {
 
 	// find the comment
 	cur := handler.collection.FindOne(handler.ctx, bson.M{
-		"postID": objectid,
+		"_id": objectid,
 	})
 	if cur.Err() != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": cur.Err().Error()})

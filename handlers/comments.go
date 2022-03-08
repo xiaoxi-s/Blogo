@@ -122,7 +122,7 @@ func (handler *CommentsHandler) CommentThumbupHandler(c *gin.Context) {
 	commentID, _ := primitive.ObjectIDFromHex(commentIDString)
 
 	cur := handler.collection.FindOne(handler.ctx, bson.M{
-		"commentID": commentID,
+		"_id": commentID,
 	})
 	log.Println(commentID)
 	var comment models.Comment
