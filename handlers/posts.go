@@ -103,6 +103,33 @@ func (handler *PostsHandler) NewPostHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, post)
 }
 
+// swagger:operation GET /random-post post getOneRandomPost
+// Return a post sampled randomly
+// ---
+// produces:
+// - application/json
+// responses:
+//  '200':
+//   description: Successful operation
+func (handler *PostsHandler) GetOneRandomPost(c *gin.Context) {
+	// retrieve parameter id and search in database
+	pipeline := []bson.D{{{"$sample", bson.D{{"size", 1}}}}}
+	// TODO: use redis!
+
+	cur, err := handler.collection.Aggregate(handler.ctx, pipeline)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	posts := make([]models.Post, 0)
+	for cur.Next(handler.ctx) {
+		var post models.Post
+		cur.Decode(&post)
+		posts = append(posts, post)
+	}
+
+	c.JSON(http.StatusOK, posts[0])
+}
+
 // swagger:operation GET /posts/{id} post viewPost
 // View a post given its id
 // ---

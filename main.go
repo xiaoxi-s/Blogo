@@ -83,6 +83,8 @@ func main() {
 	router.GET("/posts", postsHandlers.ListPostsHandler)
 	router.GET("/posts/:id", postsHandlers.ViewPostHandler)
 	router.GET("/posts/search/:title", postsHandlers.SearchPostHandler)
+	router.GET("/random-post", postsHandlers.GetOneRandomPost)
+
 	// view comments
 	router.GET("/comments/:postid", commentsHandlers.ListCommentsToPostHandler)
 
