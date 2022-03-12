@@ -46,14 +46,9 @@ func NewCommentsHandlers(ctx context.Context, collection *mongo.Collection, redi
 //	   description: Invalid posts
 func (handler *CommentsHandler) ListCommentsToPostHandler(c *gin.Context) {
 	postIDString := c.Param("postid") // get post id
-	postID, err := primitive.ObjectIDFromHex(postIDString)
-	log.Println(postID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	}
 
 	cur, err := handler.collection.Find(handler.ctx, bson.M{
-		"commentToID": postID,
+		"commentToID": postIDString,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -84,20 +79,17 @@ func (handler *CommentsHandler) CreateCommentToPostHandler(c *gin.Context) {
 		return
 	}
 	postIDString := c.Param("postid")
-	postID, err := primitive.ObjectIDFromHex(postIDString)
 
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-	}
+	// TODO: verify the postID is valid
 
 	comment.NumOfThumb = 0
 	comment.CommentID = primitive.NewObjectID()
-	comment.CommentToID = postID
+	comment.CommentToID = postIDString
 	comment.CreatedTime = time.Now()
 
 	// TODO: use redis
 
-	_, err = handler.collection.InsertOne(handler.ctx, comment)
+	_, err := handler.collection.InsertOne(handler.ctx, comment)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
