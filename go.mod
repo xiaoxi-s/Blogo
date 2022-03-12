@@ -3,6 +3,7 @@ module blogo
 go 1.17
 
 require (
+	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-redis/redis v6.15.9+incompatible
 	go.mongodb.org/mongo-driver v1.8.3
@@ -11,7 +12,6 @@ require (
 
 require (
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
-	github.com/gin-contrib/cors v1.3.1 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 )
 
