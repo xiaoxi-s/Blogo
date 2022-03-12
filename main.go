@@ -21,6 +21,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
@@ -71,8 +72,19 @@ func main() {
 	router := gin.Default()
 
 	store, _ := sessionRedisStore.NewStore(10, "tcp", os.Getenv("SESSION_REDIS_URI"), "", []byte("secret"))
+
 	router.Use(sessions.Sessions("post_api", store))
-	router.Use(cors.Default())
+	corsConfig := cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000/write-post", "http://localhost:3000"},
+		AllowMethods:     []string{"POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Length", "Content-Type", "Accept", "Authorization", "Access-Control-Request-Credentials", "Access-Control-Request-Origin", "Access-Control-Request-Methods"},
+		ExposeHeaders:    []string{"Cookie"},
+		AllowCredentials: true,
+		MaxAge:           60 * 60 * time.Hour,
+	})
+
+	// corsConfig := cors.Default()
+	router.Use(corsConfig)
 
 	// sign in
 	router.POST("/signin", authhandler.SignInHandler)
@@ -87,8 +99,19 @@ func main() {
 
 	// view comments
 	router.GET("/comments/:postid", commentsHandlers.ListCommentsToPostHandler)
-
 	authorized := router.Group("/")
+
+	// newCorsConfig := cors.New(cors.Config{
+	// 	AllowOrigins:     []string{"http://localhost:3000"},
+	// 	AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+	// 	AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"},
+	// 	AllowCredentials: true,
+	// 	MaxAge:           12 * time.Hour,
+	// })
+	// authorized.Use(cors.Default())
+
+	authorized.Use(corsConfig)
+
 	authorized.Use(authhandler.AuthMiddileware())
 	{
 		authorized.DELETE("/posts/:id", postsHandlers.DeletePostHandler)
