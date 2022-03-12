@@ -103,6 +103,33 @@ func (handler *PostsHandler) NewPostHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, post)
 }
 
+// swagger:operation GET /random-post post getOneRandomPost
+// Return a post sampled randomly
+// ---
+// produces:
+// - application/json
+// responses:
+//  '200':
+//   description: Successful operation
+func (handler *PostsHandler) GetOneRandomPost(c *gin.Context) {
+	// retrieve parameter id and search in database
+	pipeline := []bson.D{{{"$sample", bson.D{{"size", 1}}}}}
+	// TODO: use redis!
+
+	cur, err := handler.collection.Aggregate(handler.ctx, pipeline)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	posts := make([]models.Post, 0)
+	for cur.Next(handler.ctx) {
+		var post models.Post
+		cur.Decode(&post)
+		posts = append(posts, post)
+	}
+
+	c.JSON(http.StatusOK, posts[0])
+}
+
 // swagger:operation GET /posts/{id} post viewPost
 // View a post given its id
 // ---
@@ -111,24 +138,26 @@ func (handler *PostsHandler) NewPostHandler(c *gin.Context) {
 // responses:
 //  '200':
 //   description: Successful operation
-//  '404':
+//  '400':
 //   description: Invalid post ID
+//  '404':
+//   description: post with provided ID not found
 func (handler *PostsHandler) ViewPostHandler(c *gin.Context) {
 	// retrieve parameter id and search in database
 	postIDString := c.Param("id")
 	postID, err := primitive.ObjectIDFromHex(postIDString)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// TODO: use redis!
 
 	cur := handler.collection.FindOne(handler.ctx, bson.M{
-		"postID": postID,
+		"_id": postID,
 	})
 	if cur.Err() != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": cur.Err().Error()})
+		c.JSON(http.StatusNotFound, gin.H{"error": cur.Err().Error()})
 		return
 	}
 
@@ -163,7 +192,7 @@ func (handler *PostsHandler) DeletePostHandler(c *gin.Context) {
 	id := c.Param("id")
 	objectid, _ := primitive.ObjectIDFromHex(id)
 	_, err := handler.collection.DeleteOne(handler.ctx, bson.M{
-		"postID": objectid,
+		"_id": objectid,
 	})
 
 	if err != nil {
@@ -235,7 +264,7 @@ func (handler *PostsHandler) ThumbupPostHandler(c *gin.Context) {
 
 	// find the comment
 	cur := handler.collection.FindOne(handler.ctx, bson.M{
-		"postID": objectid,
+		"_id": objectid,
 	})
 	if cur.Err() != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": cur.Err().Error()})
