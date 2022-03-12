@@ -60,7 +60,7 @@ func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 	session.Set("token", sessionToken)
 	session.Save()
 
-	c.JSON(http.StatusOK, gin.H{"message": "sign in succeed"})
+	c.JSON(http.StatusOK, gin.H{"message": "sign in succeed", "cookie": sessionToken})
 }
 
 // swagger:operation POST /signout auth signOut
@@ -119,6 +119,13 @@ func (handler *AuthHandler) SignUpHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	sessionToken := xid.New().String()
+	session := sessions.Default(c)
+	session.Set("username", user.Username)
+	session.Set("token", sessionToken)
+	session.Save()
+
 	c.JSON(http.StatusOK, gin.H{"message": "sign up successful"})
 }
 
@@ -127,7 +134,7 @@ func (handler *AuthHandler) AuthMiddileware() gin.HandlerFunc {
 		session := sessions.Default(c)
 		sessionToken := session.Get("token")
 		if sessionToken == nil {
-			c.JSON(http.StatusForbidden, gin.H{"message": "not signed in"})
+			c.JSON(http.StatusForbidden, gin.H{"error": "not signed in"})
 			c.Abort()
 		}
 		c.Next()
