@@ -35,7 +35,8 @@ import (
 
 var postsHandlers *handlers.PostsHandler
 var commentsHandlers *handlers.CommentsHandler
-var authhandler *handlers.AuthHandler
+var authHandler *handlers.AuthHandler
+var newsHandler *handlers.NewsHandler
 
 func init() {
 	ctx := context.Background()
@@ -53,6 +54,7 @@ func init() {
 	collectionPosts := client.Database(os.Getenv("MONGO_DATABASE")).Collection("posts")
 	collectionComments := client.Database(os.Getenv("MONGO_DATABASE")).Collection("comments")
 	collectionUsers := client.Database(os.Getenv("MONGO_DATABASE")).Collection("users")
+	collectionNews := client.Database(os.Getenv("MONGO_DATABASE")).Collection("news")
 
 	// Connect to redis
 	redisClient := redis.NewClient(&redis.Options{
@@ -62,10 +64,12 @@ func init() {
 	})
 	status := redisClient.Ping()
 	log.Println(status)
+
 	//create handlers
 	postsHandlers = handlers.NewPostsHandlers(ctx, collectionPosts, redisClient)
 	commentsHandlers = handlers.NewCommentsHandlers(ctx, collectionComments, redisClient)
-	authhandler = handlers.NewAuthHandler(ctx, collectionUsers)
+	authHandler = handlers.NewAuthHandler(ctx, collectionUsers)
+	newsHandler = handlers.NewNewsHandlers(ctx, collectionNews, redisClient)
 }
 
 func main() {
@@ -83,13 +87,12 @@ func main() {
 		MaxAge:           60 * 60 * time.Hour,
 	})
 
-	// corsConfig := cors.Default()
 	router.Use(corsConfig)
 
 	// sign in
-	router.POST("/signin", authhandler.SignInHandler)
-	router.POST("/singout", authhandler.SignOutHandler)
-	router.POST("/signup", authhandler.SignUpHandler)
+	router.POST("/signin", authHandler.SignInHandler)
+	router.POST("/singout", authHandler.SignOutHandler)
+	router.POST("/signup", authHandler.SignUpHandler)
 
 	// view posts
 	router.GET("/posts", postsHandlers.ListPostsHandler)
@@ -99,20 +102,14 @@ func main() {
 
 	// view comments
 	router.GET("/comments/:postid", commentsHandlers.ListCommentsToPostHandler)
-	authorized := router.Group("/")
 
-	// newCorsConfig := cors.New(cors.Config{
-	// 	AllowOrigins:     []string{"http://localhost:3000"},
-	// 	AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
-	// 	AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"},
-	// 	AllowCredentials: true,
-	// 	MaxAge:           12 * time.Hour,
-	// })
-	// authorized.Use(cors.Default())
+	// handlers for daily
+	router.GET("/news", newsHandler.ListNewsHandler)
+	authorized := router.Group("/")
 
 	authorized.Use(corsConfig)
 
-	authorized.Use(authhandler.AuthMiddileware())
+	authorized.Use(authHandler.AuthMiddileware())
 	{
 		authorized.DELETE("/posts/:id", postsHandlers.DeletePostHandler)
 		authorized.POST("/posts", postsHandlers.NewPostHandler)
