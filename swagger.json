@@ -21,6 +21,86 @@
   "host": "localhost:8080",
   "basePath": "/",
   "paths": {
+    "/comments/:postid": {
+      "post": {
+        "description": "Create a comment to a post",
+        "tags": [
+          "comment"
+        ],
+        "operationId": "createCommentToPost",
+        "responses": {
+          "200": {
+            "description": "Success operation"
+          },
+          "404": {
+            "description": "Invalid posts"
+          }
+        }
+      }
+    },
+    "/comments/thumbup/{commentid}": {
+      "post": {
+        "description": "Create a comment to a post",
+        "tags": [
+          "comment"
+        ],
+        "operationId": "commentThumbup",
+        "responses": {
+          "200": {
+            "description": "Success operation"
+          },
+          "404": {
+            "description": "Invalid posts"
+          }
+        }
+      }
+    },
+    "/comments/{postid}": {
+      "get": {
+        "description": "List comments to a post",
+        "tags": [
+          "comment"
+        ],
+        "operationId": "listCommentsToPosts",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of the post",
+            "name": "postid",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success operation"
+          },
+          "404": {
+            "description": "Invalid posts"
+          }
+        }
+      }
+    },
+    "/daily": {
+      "get": {
+        "description": "List news",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "daily"
+        ],
+        "operationId": "signIn",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "500": {
+            "description": "Database query error"
+          }
+        }
+      }
+    },
     "/post/search/{title}": {
       "get": {
         "description": "Search a post given its title",
@@ -46,6 +126,35 @@
           },
           "404": {
             "description": "Invalid post title"
+          }
+        }
+      }
+    },
+    "/post/thumbup/{id}": {
+      "post": {
+        "description": "Give a post specified by id a thumb up",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "post"
+        ],
+        "operationId": "thumbupPost",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "post id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "404": {
+            "description": "Invalid post id"
           }
         }
       }
@@ -99,8 +208,11 @@
           "200": {
             "description": "Successful operation"
           },
-          "404": {
+          "400": {
             "description": "Invalid post ID"
+          },
+          "404": {
+            "description": "post with provided ID not found"
           }
         }
       },
@@ -128,6 +240,83 @@
           },
           "404": {
             "description": "Invalid post ID"
+          }
+        }
+      }
+    },
+    "/random-post": {
+      "get": {
+        "description": "Return a post sampled randomly",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "post"
+        ],
+        "operationId": "getOneRandomPost",
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          }
+        }
+      }
+    },
+    "/signin": {
+      "post": {
+        "description": "Login with user name and password",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "auth"
+        ],
+        "operationId": "signIn",
+        "responses": {
+          "200": {
+            "description": "Successful sign in"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/signout": {
+      "post": {
+        "description": "Sign out",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "auth"
+        ],
+        "operationId": "signOut",
+        "responses": {
+          "200": {
+            "description": "Successful sign out"
+          }
+        }
+      }
+    },
+    "/signup": {
+      "post": {
+        "description": "Sign up as a new user",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "auth"
+        ],
+        "operationId": "signUp",
+        "responses": {
+          "200": {
+            "description": "Successful sign up"
+          },
+          "400": {
+            "description": "Username is used"
+          },
+          "500": {
+            "description": "Server databaes error"
           }
         }
       }
