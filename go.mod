@@ -10,13 +10,9 @@ require (
 	golang.org/x/net v0.0.0-20210428140749-89ef3d95e781
 )
 
-require (
-	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
-	github.com/gomodule/redigo v2.0.0+incompatible // indirect
-)
+require github.com/gomodule/redigo v1.8.8 // indirect
 
 require (
-	github.com/gin-contrib/sessions v0.0.4
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
