@@ -91,7 +91,7 @@ func main() {
 
 	// sign in
 	router.POST("/signin", authHandler.SignInHandler)
-	router.POST("/singout", authHandler.SignOutHandler)
+	router.POST("/signout", authHandler.SignOutHandler)
 	router.POST("/signup", authHandler.SignUpHandler)
 
 	// view posts
