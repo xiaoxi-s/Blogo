@@ -79,7 +79,7 @@ func main() {
 
 	router.Use(sessions.Sessions("post_api", store))
 	corsConfig := cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000/write-post", "http://localhost:3000"},
+		AllowOrigins:     []string{"http://localhost", "http://localhost:3000/write-post", "http://localhost:3000", "http://20.127.128.101", "http://20.127.128.101:3000", "http://20.127.128.101:3000/write-post"},
 		AllowMethods:     []string{"POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Length", "Content-Type", "Accept", "Authorization", "Access-Control-Request-Credentials", "Access-Control-Request-Origin", "Access-Control-Request-Methods"},
 		ExposeHeaders:    []string{"Cookie"},

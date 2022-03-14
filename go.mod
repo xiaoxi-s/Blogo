@@ -4,13 +4,17 @@ go 1.17
 
 require (
 	github.com/gin-contrib/cors v1.3.1
+	github.com/gin-contrib/sessions v0.0.4
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-redis/redis v6.15.9+incompatible
 	go.mongodb.org/mongo-driver v1.8.3
 	golang.org/x/net v0.0.0-20210428140749-89ef3d95e781
 )
 
-require github.com/gomodule/redigo v1.8.8 // indirect
+require (
+	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
+	github.com/gomodule/redigo v2.0.0+incompatible // indirect
+)
 
 require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
