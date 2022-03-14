@@ -126,8 +126,11 @@ func (handler *PostsHandler) GetOneRandomPost(c *gin.Context) {
 		cur.Decode(&post)
 		posts = append(posts, post)
 	}
-
-	c.JSON(http.StatusOK, posts[0])
+	if len(posts) == 0 {
+		c.JSON(http.StatusOK, "")
+	} else {
+		c.JSON(http.StatusOK, posts[0])
+	}
 }
 
 // swagger:operation GET /posts/{id} post viewPost
