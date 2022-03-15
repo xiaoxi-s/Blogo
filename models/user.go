@@ -7,14 +7,14 @@ import (
 )
 
 type User struct {
-	Username string             `json:"username"`
-	Password string             `json:"password"`
+	Username string             `json:"username" bson:"username"`
+	Password string             `json:"password" bson:"password"`
 	UserID   primitive.ObjectID `json:"userID" bson:"_id"`
 }
 
 type UserProfile struct {
-	Username    string             `json:"username"`
-	Password    string             `json:"password"`
-	UserID      primitive.ObjectID `json:"userID"`
-	CreatedTime time.Time          `json:"userCreatedTime"`
+	Username    string             `json:"username" bson:"username"`
+	Password    string             `json:"password" bson:"password"`
+	UserID      primitive.ObjectID `json:"userID" bson:"_id"`
+	CreatedTime time.Time          `json:"userCreatedTime" bson:"userCreatedTime"`
 }

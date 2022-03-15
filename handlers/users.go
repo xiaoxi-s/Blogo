@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -112,6 +113,7 @@ func (handler *AuthHandler) SignUpHandler(c *gin.Context) {
 	// do not insert plaintext
 	h := sha256.New()
 	newUser.Password = string(h.Sum([]byte(newUser.Password)))
+	newUser.UserID = primitive.NewObjectID()
 
 	// insert the new user into database
 	_, err = handler.collection.InsertOne(handler.ctx, newUser)
