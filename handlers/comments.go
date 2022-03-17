@@ -204,7 +204,7 @@ func (handler *CommentsHandler) CommentThumbupHandler(c *gin.Context) {
 	}
 	var commentThumbupedByUser models.CommentThumbupedByUser
 	commentThumbupedByUser.Username = user.Username
-	commentThumbupedByUser.CommentID = commentID.Hex()
+	commentThumbupedByUser.CommentID = commentIDString
 
 	_, err = handler.collectionThumbupedByUser.InsertOne(handler.ctx, commentThumbupedByUser)
 

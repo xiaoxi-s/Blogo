@@ -16,6 +16,6 @@ type Comment struct {
 }
 
 type CommentThumbupedByUser struct {
-	CommentID string `json:"commentID" bson:"_id,omitempty"`
+	CommentID string `json:"commentID" bson:"commentID,omitempty"`
 	Username  string `json:"username" bson:"username"`
 }
