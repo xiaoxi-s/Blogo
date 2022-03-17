@@ -56,6 +56,7 @@ func init() {
 	collectionUsers := client.Database(os.Getenv("MONGO_DATABASE")).Collection("users")
 	collectionNews := client.Database(os.Getenv("MONGO_DATABASE")).Collection("news")
 	collectionCommentsThumbuped := client.Database(os.Getenv("MONGO_DATABASE")).Collection("commentsThumbuped")
+	collectionPostsThumbuped := client.Database(os.Getenv("MONGO_DATABASE")).Collection("postsThumbuped")
 
 	// Connect to redis
 	redisClient := redis.NewClient(&redis.Options{
@@ -67,7 +68,7 @@ func init() {
 	log.Println(status)
 
 	//create handlers
-	postsHandlers = handlers.NewPostsHandlers(ctx, collectionPosts, redisClient)
+	postsHandlers = handlers.NewPostsHandlers(ctx, collectionPosts, collectionPostsThumbuped, redisClient)
 	commentsHandlers = handlers.NewCommentsHandlers(ctx, collectionComments, collectionCommentsThumbuped, redisClient)
 	authHandler = handlers.NewAuthHandler(ctx, collectionUsers)
 	newsHandler = handlers.NewNewsHandlers(ctx, collectionNews, redisClient)
@@ -88,6 +89,7 @@ func main() {
 			"http://20.127.128.101:3000",
 			"http://20.127.128.101:3000/write-post",
 			"http://20.127.128.101:3000/?",
+			"http://20.127.128.101:3000/posts?",
 			"http://20.127.128.101:3000/posts/622fd5f15aa0661887f6f090",
 		},
 		AllowMethods:     []string{"POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
@@ -128,6 +130,7 @@ func main() {
 		authorized.POST("/comments/thumbup/:commentid", commentsHandlers.CommentThumbupHandler)
 		authorized.GET("/comments/by/:username", commentsHandlers.GetListOfCommentsBy)
 		authorized.GET("/comments/thumbupedby/:username", commentsHandlers.GetListOfThumbupedBy)
+		authorized.GET("/posts/thumbupedby/:username", postsHandlers.GetListOfPostsThumbupedBy)
 	}
 
 	router.Run()

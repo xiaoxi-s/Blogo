@@ -16,3 +16,8 @@ type Post struct {
 	NumOfThumb      int64              `json:"postNumOfThumb" bson:"postNumOfThumb"`
 	Content         string             `json:"postContent" bson:"postContent"`
 }
+
+type PostThumbupedByUser struct {
+	PostID   string `json:"postID" bson:"postID,omitempty"`
+	Username string `json:"username" bson:"username"`
+}
