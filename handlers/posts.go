@@ -16,16 +16,18 @@ import (
 )
 
 type PostsHandler struct {
-	ctx         context.Context
-	collection  *mongo.Collection
-	redisClient *redis.Client
+	ctx                       context.Context
+	collection                *mongo.Collection
+	collectionThumbupedByUser *mongo.Collection
+	redisClient               *redis.Client
 }
 
-func NewPostsHandlers(ctx context.Context, collection *mongo.Collection, redisClient *redis.Client) *PostsHandler {
+func NewPostsHandlers(ctx context.Context, collection *mongo.Collection, collectionThumbupedByUser *mongo.Collection, redisClient *redis.Client) *PostsHandler {
 	return &PostsHandler{
-		ctx:         ctx,
-		collection:  collection,
-		redisClient: redisClient,
+		ctx:                       ctx,
+		collection:                collection,
+		collectionThumbupedByUser: collectionThumbupedByUser,
+		redisClient:               redisClient,
 	}
 }
 
@@ -244,6 +246,36 @@ func (handler *PostsHandler) SearchPostHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, posts)
 }
 
+// swagger:operation GET /posts/thumbupedby/{username} comment GetListOfPostsThumpupedBy
+// return a list of postID where the associated posts are by the given username
+// ---
+// produce:
+// - application/json
+// responses:
+//   '200':
+//     description: Success operation
+//   '404':
+//	   description: Invalid username
+func (handler *PostsHandler) GetListOfPostsThumbupedBy(c *gin.Context) {
+	username := c.Param("username")
+	cur, err := handler.collectionThumbupedByUser.Find(handler.ctx, bson.M{
+		"username": username,
+	})
+
+	if err != nil { // update error
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	postIDs := make([]string, 0)
+	for cur.Next(handler.ctx) {
+		var postThumbed models.PostThumbupedByUser
+		cur.Decode(&postThumbed)
+		postIDs = append(postIDs, postThumbed.PostID)
+	}
+	c.JSON(http.StatusOK, postIDs)
+}
+
 // swagger:operation POST /post/thumbup/{id} post thumbupPost
 // Give a post specified by id a thumb up
 // ---
@@ -261,8 +293,9 @@ func (handler *PostsHandler) SearchPostHandler(c *gin.Context) {
 //   '404':
 //     description: Invalid post id
 func (handler *PostsHandler) ThumbupPostHandler(c *gin.Context) {
-
+	var user models.User
 	id := c.Param("id")
+	c.ShouldBindJSON(&user)
 	objectid, _ := primitive.ObjectIDFromHex(id)
 
 	// find the comment
@@ -291,5 +324,12 @@ func (handler *PostsHandler) ThumbupPostHandler(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
+
+	var postThumbuped models.PostThumbupedByUser
+	postThumbuped.PostID = id
+	postThumbuped.Username = user.Username
+
+	_, err = handler.collectionThumbupedByUser.InsertOne(handler.ctx, postThumbuped)
+
 	c.JSON(http.StatusOK, gin.H{"thumbupResult": "success"})
 }

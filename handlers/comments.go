@@ -158,9 +158,9 @@ func (handler *CommentsHandler) GetListOfThumbupedBy(c *gin.Context) {
 
 	commentsID := make([]string, 0)
 	for cur.Next(handler.ctx) {
-		var comment models.Comment
-		cur.Decode(&comment)
-		commentsID = append(commentsID, comment.CommentID.Hex())
+		var commentThumbed models.CommentThumbupedByUser
+		cur.Decode(&commentThumbed)
+		commentsID = append(commentsID, commentThumbed.CommentID)
 	}
 	c.JSON(http.StatusOK, commentsID)
 }
@@ -204,7 +204,7 @@ func (handler *CommentsHandler) CommentThumbupHandler(c *gin.Context) {
 	}
 	var commentThumbupedByUser models.CommentThumbupedByUser
 	commentThumbupedByUser.Username = user.Username
-	commentThumbupedByUser.CommentID = commentID.Hex()
+	commentThumbupedByUser.CommentID = commentIDString
 
 	_, err = handler.collectionThumbupedByUser.InsertOne(handler.ctx, commentThumbupedByUser)
 
