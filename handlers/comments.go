@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"blogo/models"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -15,16 +16,18 @@ import (
 )
 
 type CommentsHandler struct {
-	ctx         context.Context
-	collection  *mongo.Collection
-	redisClient *redis.Client
+	ctx                       context.Context
+	collection                *mongo.Collection
+	collectionThumbupedByUser *mongo.Collection
+	redisClient               *redis.Client
 }
 
-func NewCommentsHandlers(ctx context.Context, collection *mongo.Collection, redisClient *redis.Client) *CommentsHandler {
+func NewCommentsHandlers(ctx context.Context, collection *mongo.Collection, collectionThumbupedByUser *mongo.Collection, redisClient *redis.Client) *CommentsHandler {
 	return &CommentsHandler{
-		ctx:         ctx,
-		collection:  collection,
-		redisClient: redisClient,
+		ctx:                       ctx,
+		collection:                collection,
+		collectionThumbupedByUser: collectionThumbupedByUser,
+		redisClient:               redisClient,
 	}
 }
 
@@ -99,6 +102,69 @@ func (handler *CommentsHandler) CreateCommentToPostHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, comment)
 }
 
+// swagger:operation GET /comments/by/{username} comment GetListOfCommentsBy
+// return a list of commentsID where the associated comments are by the given username
+// ---
+// produce:
+// - application/json
+// responses:
+//   '200':
+//     description: Success operation
+//   '404':
+//	   description: Invalid username
+func (handler *CommentsHandler) GetListOfCommentsBy(c *gin.Context) {
+	username := c.Param("username")
+
+	cur, err := handler.collection.Find(handler.ctx, bson.M{
+		"username": username,
+	})
+
+	if err != nil { // update error
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	commentsID := make([]string, 0)
+	for cur.Next(handler.ctx) {
+		var comment models.Comment
+		cur.Decode(&comment)
+		commentsID = append(commentsID, comment.CommentID.Hex())
+	}
+	c.JSON(http.StatusOK, commentsID)
+}
+
+// swagger:operation GET /comments/thumbupedby/{username} comment GetListOfCommentsBy
+// return a list of commentsID where the associated comments are by the given username
+// ---
+// produce:
+// - application/json
+// responses:
+//   '200':
+//     description: Success operation
+//   '404':
+//	   description: Invalid username
+func (handler *CommentsHandler) GetListOfThumbupedBy(c *gin.Context) {
+	username := c.Param("username")
+	fmt.Print(username)
+
+	cur, err := handler.collectionThumbupedByUser.Find(handler.ctx, bson.M{
+		"username": username,
+	})
+
+	if err != nil { // update error
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	commentsID := make([]string, 0)
+	for cur.Next(handler.ctx) {
+		var comment models.Comment
+		cur.Decode(&comment)
+		commentsID = append(commentsID, comment.CommentID.Hex())
+	}
+	c.JSON(http.StatusOK, commentsID)
+}
+
 // swagger:operation POST /comments/thumbup/{commentid} comment commentThumbup
 // Create a comment to a post
 // ---
@@ -111,6 +177,9 @@ func (handler *CommentsHandler) CreateCommentToPostHandler(c *gin.Context) {
 //	   description: Invalid posts
 func (handler *CommentsHandler) CommentThumbupHandler(c *gin.Context) {
 	commentIDString := c.Param("commentid")
+	var user models.User
+	c.ShouldBindJSON(&user) // to get access to username
+
 	commentID, _ := primitive.ObjectIDFromHex(commentIDString)
 
 	cur := handler.collection.FindOne(handler.ctx, bson.M{
@@ -126,12 +195,18 @@ func (handler *CommentsHandler) CommentThumbupHandler(c *gin.Context) {
 
 	num := comment.NumOfThumb
 	_, err = handler.collection.UpdateByID(handler.ctx, commentID, bson.M{
-		"$set": bson.D{{"postNumOfThumb", num + 1}},
+		"$set": bson.D{{"numOfThumb", num + 1}},
 	})
 
 	if err != nil { // update error
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
+	var commentThumbupedByUser models.CommentThumbupedByUser
+	commentThumbupedByUser.Username = user.Username
+	commentThumbupedByUser.CommentID = commentID.Hex()
+
+	_, err = handler.collectionThumbupedByUser.InsertOne(handler.ctx, commentThumbupedByUser)
+
 	c.JSON(http.StatusOK, gin.H{"thumbupResult": "success"})
 }
