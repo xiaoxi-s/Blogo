@@ -14,3 +14,8 @@ type Comment struct {
 	NumOfThumb  int64              `json:"numOfThumb" bson:"numOfThumb"`
 	Content     string             `json:"commentContent" bson:"commentContent"`
 }
+
+type CommentThumbupedByUser struct {
+	CommentID string `json:"commentID" bson:"_id,omitempty"`
+	Username  string `json:"username" bson:"username"`
+}
