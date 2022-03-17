@@ -55,6 +55,7 @@ func init() {
 	collectionComments := client.Database(os.Getenv("MONGO_DATABASE")).Collection("comments")
 	collectionUsers := client.Database(os.Getenv("MONGO_DATABASE")).Collection("users")
 	collectionNews := client.Database(os.Getenv("MONGO_DATABASE")).Collection("news")
+	collectionCommentsThumbuped := client.Database(os.Getenv("MONGO_DATABASE")).Collection("commentsThumbuped")
 
 	// Connect to redis
 	redisClient := redis.NewClient(&redis.Options{
@@ -67,7 +68,7 @@ func init() {
 
 	//create handlers
 	postsHandlers = handlers.NewPostsHandlers(ctx, collectionPosts, redisClient)
-	commentsHandlers = handlers.NewCommentsHandlers(ctx, collectionComments, redisClient)
+	commentsHandlers = handlers.NewCommentsHandlers(ctx, collectionComments, collectionCommentsThumbuped, redisClient)
 	authHandler = handlers.NewAuthHandler(ctx, collectionUsers)
 	newsHandler = handlers.NewNewsHandlers(ctx, collectionNews, redisClient)
 }
@@ -79,7 +80,16 @@ func main() {
 
 	router.Use(sessions.Sessions("post_api", store))
 	corsConfig := cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost", "http://localhost:3000/write-post", "http://localhost:3000", "http://20.127.128.101", "http://20.127.128.101:3000", "http://20.127.128.101:3000/write-post"},
+		AllowOrigins: []string{
+			"http://localhost",
+			"http://localhost:3000/write-post",
+			"http://localhost:3000",
+			"http://20.127.128.101",
+			"http://20.127.128.101:3000",
+			"http://20.127.128.101:3000/write-post",
+			"http://20.127.128.101:3000/?",
+			"http://20.127.128.101:3000/posts/622fd5f15aa0661887f6f090",
+		},
 		AllowMethods:     []string{"POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Length", "Content-Type", "Accept", "Authorization", "Access-Control-Request-Credentials", "Access-Control-Request-Origin", "Access-Control-Request-Methods"},
 		ExposeHeaders:    []string{"Cookie"},
@@ -116,6 +126,8 @@ func main() {
 		authorized.POST("/posts/thumbup/:id", postsHandlers.ThumbupPostHandler)
 		authorized.POST("/comments/:postid", commentsHandlers.CreateCommentToPostHandler)
 		authorized.POST("/comments/thumbup/:commentid", commentsHandlers.CommentThumbupHandler)
+		authorized.GET("/comments/by/:username", commentsHandlers.GetListOfCommentsBy)
+		authorized.GET("/comments/thumbupedby/:username", commentsHandlers.GetListOfThumbupedBy)
 	}
 
 	router.Run()
